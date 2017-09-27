@@ -512,6 +512,99 @@ double TrkDifPieceTraj::distTo2ndError(double flightdist, double tol, int dir) c
             dist = std::min(localdist, flightdist - _globalrange[index]) + _STEPEPSILON;
     }
     return dist;
+
+
+// compute the flightlength for a given z position
+double 
+TrkDifPieceTraj::zFlight(double pz) const {
+  // FIXME!! this algorrithm needs to be refined
+  // get the helix at the middle of the track
+      double loclen;
+      double fltlen(0.0);
+      const HelixTraj* htraj = dynamic_cast<const HelixTraj*>(localTrajectory(fltlen,loclen));
+      // Iterate
+      const HelixTraj* oldtraj;
+      unsigned iter(0);
+      do {
+	// remember old traj
+	oldtraj = htraj;
+	// correct the global fltlen for this difference in local trajectory fltlen at this Z position
+	fltlen += (htraj->zFlight(pz)-loclen);
+	htraj = dynamic_cast<const HelixTraj*>(localTrajectory(fltlen,loclen));
+      } while(oldtraj != htraj && iter++<10);
+      return fltlen;  
+}
+
+HepPoint
+TrkDifPieceTraj::position(double flightdist) const
+{
+//
+//  First, find the right trajectory piece, then give the local position
+//
+  double localflight(0.0);
+  const TrkSimpTraj* loctraj = localTrajectory(flightdist,localflight);
+  return loctraj->position(localflight);
+}
+
+Hep3Vector
+TrkDifPieceTraj::direction(double flightdist) const
+{
+//
+//  First, find the right trajectory piece, then give the local direction
+//
+  double localflight(0.0);
+  const TrkSimpTraj* loctraj = localTrajectory(flightdist,localflight);
+  return loctraj->direction(localflight);
+}
+
+double
+TrkDifPieceTraj::curvature(double flightdist) const
+{
+//
+//  First, find the right trajectory piece, then give the local curvature
+//
+  double localflight(0.0);
+  const TrkSimpTraj* loctraj = localTrajectory(flightdist,localflight);
+  return loctraj->curvature(localflight);
+}
+
+Hep3Vector
+TrkDifPieceTraj::delDirect(double flightdist) const
+{
+//
+//  First, find the right trajectory piece, then give the local value
+//
+  double localflight(0.0);
+  const TrkSimpTraj* loctraj = localTrajectory(flightdist,localflight);
+  return loctraj->delDirect(localflight);
+}
+
+void
+TrkDifPieceTraj::getInfo(double flightdist,
+                         HepPoint& point,
+                         Hep3Vector& dir) const
+{
+//
+//  First, find the right trajectory piece, then call the local function
+//
+  double localflight(0.0);
+  const TrkSimpTraj* loctraj = localTrajectory(flightdist,localflight);
+  loctraj->getInfo(localflight,point,dir);
+}
+
+void
+TrkDifPieceTraj::getInfo(double flightdist,
+                         HepPoint& point,
+                         Hep3Vector& dir,
+                         Hep3Vector& deldirect) const
+{
+//
+//  First, find the right trajectory piece, then call the local function
+//
+  double localflight(0.0);
+  const TrkSimpTraj* loctraj = localTrajectory(flightdist,localflight);
+  loctraj->getInfo(localflight,point,dir,deldirect);
+}
 }
 
 const TrkSimpTraj* TrkDifPieceTraj::localTrajectory(double flightdist, double& localflight) const {
